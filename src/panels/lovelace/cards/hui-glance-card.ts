@@ -17,6 +17,7 @@ import { hassLocalizeLitMixin } from "../../../mixins/lit-localize-mixin";
 import { HomeAssistant } from "../../../types.js";
 import { LovelaceCard, LovelaceConfig } from "../types.js";
 import { longPress } from "../common/directives/long-press-directive";
+import { TemplateResult } from "lit-html";
 
 interface EntityConfig {
   name: string;
@@ -83,6 +84,28 @@ export class HuiGlanceCard extends hassLocalizeLitMixin(LitElement)
     if (this.hass) {
       this.requestUpdate();
     }
+  }
+
+  public getElementConfig(config: any, hass: HomeAssistant): TemplateResult {
+    if (!config || !hass) {
+      return html``;
+    }
+    return html`
+      <paper-input label="Title" value="${config.title}"></paper-input>
+      ${config.entities.map((entityConf) => {
+        return html`
+          <ha-entity-picker
+            hass="${hass}"
+            value="${entityConf.entity || entityConf}"
+            allow-custom-entity
+          ></ha-entity-picker>
+        `;
+      })}
+      <paper-checkbox ?checked="${config.show_name !==
+        false}">Show Entity's Name?</paper-checkbox>
+      <paper-checkbox ?checked="${config.show_state !==
+        false}">Show Entity's state-text?</paper-checkbox>
+    `;
   }
 
   protected render() {
