@@ -1,23 +1,21 @@
 import { html, LitElement } from "@polymer/lit-element";
 import { classMap } from "lit-html/directives/classMap.js";
 
+import { fireEvent } from "../../../common/dom/fire_event.js";
+import { hassLocalizeLitMixin } from "../../../mixins/lit-localize-mixin";
+import { HomeAssistant } from "../../../types.js";
+import { LovelaceCard, LovelaceConfig, LovelaceCardEditor } from "../types.js";
+import { longPress } from "../common/directives/long-press-directive";
+
 import computeStateDisplay from "../../../common/entity/compute_state_display.js";
 import computeStateName from "../../../common/entity/compute_state_name.js";
 import processConfigEntities from "../common/process-config-entities";
 import applyThemesOnElement from "../../../common/dom/apply_themes_on_element.js";
-
 import toggleEntity from "../common/entity/toggle-entity.js";
 
 import "../../../components/entity/state-badge.js";
 import "../../../components/ha-card.js";
 import "../../../components/ha-icon.js";
-
-import { fireEvent } from "../../../common/dom/fire_event.js";
-import { hassLocalizeLitMixin } from "../../../mixins/lit-localize-mixin";
-import { HomeAssistant } from "../../../types.js";
-import { LovelaceCard, LovelaceConfig } from "../types.js";
-import { longPress } from "../common/directives/long-press-directive";
-import { TemplateResult } from "lit-html";
 
 interface EntityConfig {
   name: string;
@@ -40,6 +38,11 @@ interface Config extends LovelaceConfig {
 
 export class HuiGlanceCard extends hassLocalizeLitMixin(LitElement)
   implements LovelaceCard {
+  public static async getElementConfig(): Promise<LovelaceCardEditor> {
+    await import("../editor/hui-glance-card-editor");
+    return document.createElement("hui-glance-card-editor");
+  }
+
   public hass?: HomeAssistant;
   protected config?: Config;
   protected configEntities?: EntityConfig[];
@@ -84,28 +87,6 @@ export class HuiGlanceCard extends hassLocalizeLitMixin(LitElement)
     if (this.hass) {
       this.requestUpdate();
     }
-  }
-
-  public getElementConfig(config: any, hass: HomeAssistant): TemplateResult {
-    if (!config || !hass) {
-      return html``;
-    }
-    return html`
-      <paper-input label="Title" value="${config.title}"></paper-input>
-      ${config.entities.map((entityConf) => {
-        return html`
-          <ha-entity-picker
-            hass="${hass}"
-            value="${entityConf.entity || entityConf}"
-            allow-custom-entity
-          ></ha-entity-picker>
-        `;
-      })}
-      <paper-checkbox ?checked="${config.show_name !==
-        false}">Show Entity's Name?</paper-checkbox>
-      <paper-checkbox ?checked="${config.show_state !==
-        false}">Show Entity's state-text?</paper-checkbox>
-    `;
   }
 
   protected render() {
